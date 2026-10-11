@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>मेरा पियानो 🎹</title>
+<style>
+body {
+  margin: 0;
+  background: #101522;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+h1 { color: #67e8f9; }
+p { color: #ddd; }
+.piano {
+  display: flex;
+  position: relative;
+  width: 96%;
+  height: 220px;
+  margin: 40px auto;
+  user-select: none;
+  touch-action: none;
+}
+.key {
+  flex: 1;
+  min-width: 0;
+  background: white;
+  border: 1px solid #222;
+  border-radius: 0 0 6px 6px;
+  color: #111;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  padding-bottom: 12px;
+  box-sizing: border-box;
+  font-size: 12px;
+}
+.key.black {
+  position: absolute;
+  width: 7%;
+  height: 62%;
+  top: 0;
+  background: #171717;
+  border: 1px solid #555;
+  border-radius: 0 0 5px 5px;
+  color: white;
+  z-index: 2;
+}
+.key.active { background: #67e8f9; }
+.key.black.active { background: #e879f9; }
+button {
+  padding: 12px 20px;
+  border: 0;
+  border-radius: 10px;
+  background: #67e8f9;
+  font-size: 16px;
+  margin: 5px;
+}
+</style>
+</head>
+<body>
+<h1>🎹 मेरा पियानो</h1>
+<p>संगीत बजाने के लिए चाबियाँ दबाएँ!</p>
+
+<div class="piano" id="piano"></div>
+
+<button id="sound">🔊 आवाज़ चालू करें</button>
+<p>आपका अपना मोबाइल पियानो ❤️</p>
+
+<script>
+const piano = document.getElementById("piano");
+const audio = new (window.AudioContext || window.webkitAudioContext)();
+
+const notes = [
+ ["C4",261.63],["D4",293.66],["E4",329.63],
+ ["F4",349.23],["G4",392],["A4",440],
+ ["B4",493.88],["C5",523.25]
+];
+
+const blackNotes = [
+ [0,"C#4",277.18],
+ [1,"D#4",311.13],
+ [3,"F#4",369.99],
+ [4,"G#4",415.30],
+ [5,"A#4",466.16]
+];
+
+function play(freq, key) {
+  if (audio.state === "suspended") audio.resume();
+  const osc = audio.createOscillator();
+  const gain = audio.createGain();
+  osc.type = "sine";
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0.25, audio.currentTime);
+  gain.gain.exponentialRampToValueAtTime(
+    0.001, audio.currentTime + 0.7
+  );
+  osc.connect(gain);
+  gain.connect(audio.destination);
+  osc.start();
+  osc.stop(audio.currentTime + 0.7);
+  key.classList.add("active");
+  setTimeout(() => key.classList.remove("active"), 150);
+}
+
+notes.forEach(([name, freq]) => {
+  const key = document.createElement("div");
+  key.className = "key";
+  key.textContent = name;
+  key.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    play(freq, key);
+  });
+  piano.appendChild(key);
+});
+
+blackNotes.forEach(([index, name, freq]) => {
+  const key = document.createElement("div");
+  key.className = "key black";
+  key.textContent = name;
+  key.style.left = ((index + 1) * 100 / 8 - 3.5) + "%";
+  key.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    play(freq, key);
+  });
+  piano.appendChild(key);
+});
+
+document.getElementById("sound").onclick = () => {
+  audio.resume();
+  play(440, document.getElementById("sound"));
+};
+</script>
+</body>
+</html>
